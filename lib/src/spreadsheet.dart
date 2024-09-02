@@ -244,8 +244,8 @@ abstract class SpreadsheetDecoder {
   }
 
   void renameSheet(String oldName, String newName) {
-    if (!_sheets.containsKey('( $oldName )')) {
-      throw ArgumentError("'$oldName' not found ${_sheets.keys}");
+    if (!_sheets.containsKey(oldName)) {
+      throw ArgumentError("'$oldName' not found Sheets:${_sheets.keys}");
     }
 
     if (_sheets.containsKey(newName)) {
@@ -259,7 +259,7 @@ abstract class SpreadsheetDecoder {
     _sheets[newName] = sheet;
 
     if (!_tables.containsKey(oldName)) {
-      throw ArgumentError("'$oldName' not found ${_tables.keys}");
+      throw ArgumentError("'$oldName' not found Tables:${_tables.keys}");
     }
 
     if (_tables.containsKey(newName)) {
@@ -273,7 +273,7 @@ abstract class SpreadsheetDecoder {
     _tables[newName] = table;
 
     if (!_xmlFiles.containsKey(oldName)) {
-      throw ArgumentError("'$oldName' not found ${_xmlFiles.keys}");
+      throw ArgumentError("'$oldName' not found XmlFiles:${_xmlFiles.keys}");
     }
 
     if (_xmlFiles.containsKey(newName)) {
