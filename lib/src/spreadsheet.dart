@@ -244,7 +244,7 @@ abstract class SpreadsheetDecoder {
   }
 
   void renameSheet(String oldName, String newName) {
-    if (!_sheets.containsKey(oldName)) {
+    if (!_sheets.containsKey('( $oldName )')) {
       throw ArgumentError("'$oldName' not found ${_sheets.keys}");
     }
 
