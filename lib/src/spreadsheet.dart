@@ -244,47 +244,53 @@ abstract class SpreadsheetDecoder {
   }
 
   void renameSheet(String oldName, String newName) {
-    if (!_sheets.containsKey(oldName)) {
+    if (_sheets[oldName] == null) {
       throw ArgumentError("'$oldName' not found Sheets:${_sheets.keys}");
     }
 
-    if (_sheets.containsKey(newName)) {
-      throw ArgumentError("'$newName' already exists");
-    }
-
-    var sheet = _sheets[oldName]!;
+    final sheet = _sheets[oldName]!;
 
     _sheets.remove(oldName);
 
     _sheets[newName] = sheet;
 
-    if (!_tables.containsKey(oldName)) {
+    if (_tables[oldName] == null) {
       throw ArgumentError("'$oldName' not found Tables:${_tables.keys}");
     }
 
-    if (_tables.containsKey(newName)) {
-      throw ArgumentError("'$newName' already exists");
-    }
-
-    var table = _tables[oldName]!.copyWith(name: newName);
+    final table = _tables[oldName]!;
 
     _tables.remove(oldName);
 
-    _tables[newName] = table;
+    _tables[newName] = table.copyWith(name: newName);
 
-    if (!_xmlFiles.containsKey(oldName)) {
-      throw ArgumentError("'$oldName' not found XmlFiles:${_xmlFiles.keys}");
+    var file = _archive.files.firstWhere((t) => t.name == 'xl/workbook.xml',
+        orElse: () {
+      throw ArgumentError("Workbook not found");
+    });
+
+    final fileIndex = _archive.files.indexOf(file);
+
+    file = ArchiveFile(
+      'xl/workbook.xml',
+      file.size,
+      utf8.encode(
+        utf8.decode(file.content).replaceAll(oldName, newName),
+      ),
+      file.compressionType,
+    );
+
+    final newArchive = Archive();
+
+    for (var i = 0; i < _archive.files.length; i++) {
+      if (i == fileIndex) {
+        newArchive.addFile(file);
+      } else {
+        newArchive.addFile(_archive.files[i]);
+      }
     }
 
-    if (_xmlFiles.containsKey(newName)) {
-      throw ArgumentError("'$newName' already exists");
-    }
-
-    final xmlFile = _xmlFiles[oldName]!;
-
-    _xmlFiles.remove(oldName);
-
-    _xmlFiles[newName] = xmlFile;
+    _archive = newArchive;
   }
 }
 
@@ -309,8 +315,8 @@ class SpreadsheetTable {
 
   SpreadsheetTable copyWith({final String? name}) {
     return SpreadsheetTable(name ?? this.name)
-      .._maxRows = _maxRows
-      .._maxCols = _maxCols
-      .._rows.addAll(_rows.map((row) => List.from(row)));
+      .._maxRows = maxRows
+      .._maxCols = maxCols
+      .._rows.addAll(rows);
   }
 }
