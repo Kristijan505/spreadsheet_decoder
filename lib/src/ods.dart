@@ -7,7 +7,7 @@
 //   - spanned columns
 //   - hidden rows (visible in resulting table)
 //   - hidden columns (visible in resulting table)
-part of spreadsheet_decoder;
+part of '../spreadsheet_decoder.dart';
 
 const String contentXML = 'content.xml';
 
@@ -222,7 +222,7 @@ class OdsDecoder extends SpreadsheetDecoder {
       if (child is XmlElement) {
         buffer.write(_normalizeNewLine(_readString(child)));
       } else if (child is XmlText) {
-        buffer.write(_normalizeNewLine(child.text));
+        buffer.write(_normalizeNewLine(child.value));
       }
     }
 

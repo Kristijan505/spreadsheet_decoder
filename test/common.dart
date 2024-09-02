@@ -1,4 +1,4 @@
-part of spreadsheet_test;
+part of 'html_test.dart';
 
 var expectedTest = <String, List<List>>{
   'ONE': [
@@ -327,7 +327,7 @@ void testXlsx() {
       expect(decoder.tables.length, expectedNoPhonetics.keys.length);
       decoder.tables.forEach((name, table) {
         expect(table.rows, expectedNoPhonetics[name]);
-      });      
+      });
     });
   });
 }

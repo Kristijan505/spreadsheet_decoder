@@ -1,4 +1,4 @@
-part of spreadsheet_decoder;
+part of '../spreadsheet_decoder.dart';
 
 const String _relationships =
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -291,7 +291,8 @@ class XlsxDecoder extends SpreadsheetDecoder {
 
   void _parseSharedString(XmlElement node) {
     var list = [];
-    node.childElements.forEach((node) {
+
+    for (final node in node.childElements) {
       if (node.localName == 't') {
         list.add(_parseValue(node));
       } else if (node.localName == 'r') {
@@ -299,7 +300,8 @@ class XlsxDecoder extends SpreadsheetDecoder {
       } else {
         // ignores <rPh> and <phoneticPr>
       }
-    });
+    }
+
     _sharedStrings.add(list.join(''));
   }
 
@@ -446,7 +448,7 @@ class XlsxDecoder extends SpreadsheetDecoder {
 
     for (var child in node.children) {
       if (child is XmlText) {
-        buffer.write(_normalizeNewLine(child.text));
+        buffer.write(_normalizeNewLine(child.value));
       }
     }
 
@@ -545,7 +547,7 @@ class XlsxDecoder extends SpreadsheetDecoder {
 
   static XmlElement _insertCell(XmlElement row, XmlElement? lastCell,
       int columnIndex, int rowIndex, dynamic value) {
-    var cell = _createCell(columnIndex, rowIndex, value);
+    var cell = _createCell(columnIndex, rowIndex, value, null);
     if (lastCell == null) {
       row.children.add(cell);
     } else {
@@ -558,20 +560,35 @@ class XlsxDecoder extends SpreadsheetDecoder {
   static XmlElement _replaceCell(XmlElement row, XmlElement? lastCell,
       int columnIndex, int rowIndex, dynamic value) {
     var index = lastCell == null ? 0 : row.children.indexOf(lastCell);
-    var cell = _createCell(columnIndex, rowIndex, value);
+
+    int? styleId = lastCell?.getAttribute('s') != null
+        ? int.tryParse(lastCell!.getAttribute('s')!)
+        : null;
+
+    var cell = _createCell(columnIndex, rowIndex, value, styleId);
+
     row.children
       ..removeAt(index)
       ..insert(index, cell);
     return cell;
   }
 
-  // TODO Manage value's type
-  static XmlElement _createCell(int columnIndex, int rowIndex, dynamic value) {
+  static XmlElement _createCell(
+    int columnIndex,
+    int rowIndex,
+    dynamic value,
+    int? styleId,
+  ) {
     var attributes = <XmlAttribute>[
       XmlAttribute(
           XmlName('r'), '${numericToLetters(columnIndex + 1)}${rowIndex + 1}'),
       XmlAttribute(XmlName('t'), 'inlineStr'),
     ];
+
+    if (styleId != null) {
+      attributes.add(XmlAttribute(XmlName('s'), styleId.toString()));
+    }
+
     var children = value == null
         ? <XmlElement>[]
         : <XmlElement>[
@@ -579,6 +596,7 @@ class XlsxDecoder extends SpreadsheetDecoder {
               XmlElement(XmlName('t'), [], [XmlText(value.toString())])
             ]),
           ];
+
     return XmlElement(XmlName('c'), attributes, children);
   }
 }

@@ -1,4 +1,4 @@
-part of spreadsheet_decoder;
+part of '../spreadsheet_decoder.dart';
 
 const _spreasheetOds = 'ods';
 const _spreasheetXlsx = 'xlsx';
@@ -242,6 +242,50 @@ abstract class SpreadsheetDecoder {
       }
     }
   }
+
+  void renameSheet(String oldName, String newName) {
+    if (!_sheets.containsKey(oldName)) {
+      throw ArgumentError("'$oldName' not found");
+    }
+
+    if (_sheets.containsKey(newName)) {
+      throw ArgumentError("'$newName' already exists");
+    }
+
+    var sheet = _sheets[oldName]!;
+
+    _sheets.remove(oldName);
+
+    _sheets[newName] = sheet;
+
+    if (!_tables.containsKey(oldName)) {
+      throw ArgumentError("'$oldName' not found");
+    }
+
+    if (_tables.containsKey(newName)) {
+      throw ArgumentError("'$newName' already exists");
+    }
+
+    var table = _tables[oldName]!.copyWith(name: newName);
+
+    _tables.remove(oldName);
+
+    _tables[newName] = table;
+
+    if (!_xmlFiles.containsKey(oldName)) {
+      throw ArgumentError("'$oldName' not found");
+    }
+
+    if (_xmlFiles.containsKey(newName)) {
+      throw ArgumentError("'$newName' already exists");
+    }
+
+    final xmlFile = _xmlFiles[oldName]!;
+
+    _xmlFiles.remove(oldName);
+
+    _xmlFiles[newName] = xmlFile;
+  }
 }
 
 /// Table of a spreadsheet file
@@ -262,4 +306,11 @@ class SpreadsheetTable {
 
   /// Get max cols
   int get maxCols => _maxCols;
+
+  SpreadsheetTable copyWith({final String? name}) {
+    return SpreadsheetTable(name ?? this.name)
+      .._maxRows = _maxRows
+      .._maxCols = _maxCols
+      .._rows.addAll(_rows.map((row) => List.from(row)));
+  }
 }
